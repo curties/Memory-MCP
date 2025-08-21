@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "Memory MCP": {
+      "command": "path/to/memory-mcp.exe",
+      "args": ["--mcp"]
+    }
+  }
+} 
