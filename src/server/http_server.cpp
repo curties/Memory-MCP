@@ -1,7 +1,7 @@
 #include "http_server.h"
 #include "memory_scanner.h"
 #include <httplib.h>
-#include <iostream>
+#include <fmt/base.h>
 #include <nlohmann/json.hpp>
 
 using namespace httplib;
@@ -15,11 +15,11 @@ HttpServer::HttpServer(uint16_t port) : port_(port) {
 
 HttpServer::~HttpServer() {
     stop();
-    std::cerr << "[INFO] HTTP server stopped" << std::endl;
+    fmt::print("[INFO] HTTP server stopped\n");
 }
 
 void HttpServer::setup_routes() {
-    std::cerr << "[INFO] Setting up HTTP server routes..." << std::endl;
+    fmt::print("[INFO] Setting up HTTP server routes...\n");
 
     server_->set_default_headers({
         {"Access-Control-Allow-Origin", "*"},
@@ -28,7 +28,7 @@ void HttpServer::setup_routes() {
     });
 
     server_->Post("/scan", [this](const Request& req, Response& res) {
-        std::cerr << "[INFO] Registering route POST /scan" << std::endl;
+        fmt::print("[INFO] Registering route POST /scan\n");
         handle_scan(req, res);
     });
 
@@ -45,17 +45,17 @@ void HttpServer::setup_routes() {
     });
 
     server_->Get("/mcp", [this](const Request& req, Response& res) {
-        std::cerr << "[INFO] Registering route GET /mcp" << std::endl;
+        fmt::print("[INFO] Registering route GET /mcp\n");
         handle_mcp(req, res);
     });
 
     server_->Post("/tools/call", [this](const Request& req, Response& res) {
-        std::cerr << "[INFO] Registering route POST /tools/call" << std::endl;
+        fmt::print("[INFO] Registering route POST /tools/call\n");
         handle_mcp_tools_call(req, res);
     });
 
     server_->Get("/tools/list", [this](const Request& req, Response& res) {
-        std::cerr << "[INFO] Registering route GET /tools/list" << std::endl;
+        fmt::print("[INFO] Registering route GET /tools/list\n");
         handle_mcp_tools_list(req, res);
     });
 
@@ -82,7 +82,7 @@ void HttpServer::stop() {
 }
 
 void HttpServer::handle_scan(const Request& req, Response& res) {
-    std::cerr << "[INFO] Processing scan request" << std::endl;
+    fmt::print("[INFO] Processing scan request\n");
 
     try {
         json request_body = json::parse(req.body);
@@ -93,9 +93,9 @@ void HttpServer::handle_scan(const Request& req, Response& res) {
         
         ValueType value_type = MemoryMCP::string_to_value_type(type_str);
         
-        std::cerr << "[INFO] Process: " << process_name << std::endl;
-        std::cerr << "[INFO] Value: " << value << std::endl;
-        std::cerr << "[INFO] Type: " << MemoryMCP::value_type_to_string(value_type) << std::endl;
+        fmt::print("[INFO] Process: {}\n", process_name);
+        fmt::print("[INFO] Value: {}\n", value);
+        fmt::print("[INFO] Type: {}\n", MemoryMCP::value_type_to_string(value_type));
         
         ScanResponse scan_response = scanner_->scan_memory(process_name, value, value_type);
         
@@ -127,7 +127,7 @@ void HttpServer::handle_scan(const Request& req, Response& res) {
 }
 
 void HttpServer::handle_get_addresses(const Request& req, Response& res) {
-    std::cerr << "[INFO] Processing get addresses request" << std::endl;
+    fmt::print("[INFO] Processing get addresses request\n");
 
     try {
         size_t max_count = 100;
@@ -154,7 +154,7 @@ void HttpServer::handle_get_addresses(const Request& req, Response& res) {
 }
 
 void HttpServer::handle_filter(const Request& req, Response& res) {
-    std::cerr << "[INFO] Processing filter request" << std::endl;
+    fmt::print("[INFO] Processing filter request\n");
 
     try {
         json request_body = json::parse(req.body);
@@ -194,7 +194,7 @@ void HttpServer::handle_filter(const Request& req, Response& res) {
 }
 
 void HttpServer::handle_reset(const Request&, Response& res) {
-    std::cerr << "[INFO] Processing reset request" << std::endl;
+    fmt::print("[INFO] Processing reset request\n");
 
     try {
         ResetResponse reset_response = scanner_->reset();
@@ -214,7 +214,7 @@ void HttpServer::handle_reset(const Request&, Response& res) {
 }
 
 void HttpServer::handle_mcp(const Request&, Response& res) {
-    std::cerr << "[INFO] Processing MCP metadata request" << std::endl;
+    fmt::print("[INFO] Processing MCP metadata request\n");
 
     try {
         json response;
@@ -244,7 +244,7 @@ void HttpServer::handle_mcp(const Request&, Response& res) {
 }
 
 void HttpServer::handle_mcp_tools_call(const Request& req, Response& res) {
-    std::cerr << "[INFO] Processing MCP tools call request" << std::endl;
+    fmt::print("[INFO] Processing MCP tools call request\n");
 
     try {
         json request_body = json::parse(req.body);
@@ -345,7 +345,7 @@ void HttpServer::handle_mcp_tools_call(const Request& req, Response& res) {
 }
 
 void HttpServer::handle_mcp_tools_list(const Request&, Response& res) {
-    std::cerr << "[INFO] Processing MCP tools list request" << std::endl;
+    fmt::print("[INFO] Processing MCP tools list request\n");
 
     try {
         json response;
