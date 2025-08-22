@@ -5,6 +5,7 @@ Debug/
 Release/
 x64/
 Win32/
+bin/
 
 # CMake
 CMakeCache.txt
