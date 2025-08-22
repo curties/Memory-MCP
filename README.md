@@ -1,4 +1,4 @@
-[![CMake on a single platform](https://github.com/kkkeeetttx/Memory-MCP/actions/workflows/cmake.yml/badge.svg?branch=main)](https://github.com/kkkeeetttx/Memory-MCP/actions/workflows/cmake.yml)
+[![CMake on a single platform](https://github.com/kkkeeetttx/Memory-MCP/actions/workflows/cmake.yml/badge.svg)](https://github.com/kkkeeetttx/Memory-MCP/actions/workflows/cmake.yml)
 
 # Memory MCP
 
