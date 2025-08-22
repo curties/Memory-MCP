@@ -27,6 +27,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 add_subdirectory(ext/json)
 add_subdirectory(ext/cpp-httplib)
+add_subdirectory(ext/fmt)
 
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} 
@@ -37,11 +38,13 @@ if(WIN32)
         user32
         nlohmann_json::nlohmann_json
         httplib::httplib
+        fmt::fmt
     )
 else()
     target_link_libraries(${PROJECT_NAME} 
         nlohmann_json::nlohmann_json
         httplib::httplib
+        fmt::fmt
     )
 endif()
 
@@ -99,6 +102,7 @@ if(BUILD_TESTING)
     # Add httplib for tests if needed
     target_link_libraries(${PROJECT_NAME}_tests 
         httplib::httplib
+        fmt::fmt
     )
     
     add_test(NAME ${PROJECT_NAME}_tests COMMAND ${PROJECT_NAME}_tests)

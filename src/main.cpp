@@ -8,6 +8,7 @@
 #include "http_server.h"
 #include "types.h"
 #include "nlohmann/json.hpp"
+#include <fmt/base.h>
 
 using json = nlohmann::json;
 using namespace MemoryMCP;
@@ -190,8 +191,7 @@ void run_mcp_mode() {
                 };
             }
 
-            std::cout << response.dump() << std::endl;
-            std::cout.flush();
+            fmt::print("{}\n", response.dump());
 
         } catch (const std::exception& e) {
             json error_response;
@@ -201,8 +201,7 @@ void run_mcp_mode() {
                 {"message", std::string("Parse error: ") + e.what()}
             };
             error_response["id"] = nullptr;
-            std::cout << error_response.dump() << std::endl;
-            std::cout.flush();
+            fmt::print("{}\n", error_response.dump());
         }
     }
 }
@@ -231,8 +230,8 @@ int main(int argc, char* argv[]) {
             server.start();
         });
 
-        std::cout << "Memory MCP Server started on port 3000\n";
-        std::cout << "Press Ctrl+C to stop\n";
+        fmt::print("Memory MCP Server started on port 3000\n");
+        fmt::print("Press Ctrl+C to stop\n");
 
         while (g_running) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -244,7 +243,7 @@ int main(int argc, char* argv[]) {
         }
 
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        fmt::print("Error: {}\n", e.what());
         return 1;
     }
 
