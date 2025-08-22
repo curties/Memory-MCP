@@ -38,6 +38,11 @@ if(WIN32)
         nlohmann_json::nlohmann_json
         httplib::httplib
     )
+else()
+    target_link_libraries(${PROJECT_NAME} 
+        nlohmann_json::nlohmann_json
+        httplib::httplib
+    )
 endif()
 
 

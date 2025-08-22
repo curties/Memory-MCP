@@ -3,7 +3,21 @@
 #include <vector>
 #include <cstdint>
 #include <nlohmann/json.hpp>
+
+#ifdef _WIN32
 #include <windows.h>
+#else
+// Linux/macOS alternatives
+#include <sys/types.h>
+#include <cstddef>
+typedef size_t SIZE_T;
+typedef void* HANDLE;
+typedef unsigned long DWORD;
+typedef int BOOL;
+typedef unsigned char BYTE;
+#define FALSE 0
+#define TRUE 1
+#endif
 
 using json = nlohmann::json;
 
