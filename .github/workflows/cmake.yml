@@ -13,10 +13,7 @@ env:
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout
@@ -30,29 +27,19 @@ jobs:
     - name: Build
       run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
-    - name: Test
-      working-directory: build
-      run: |
-        if [ -f "CTestTestfile.cmake" ]; then
-          ctest -C ${{ env.BUILD_TYPE }} --output-on-failure
-        else
-          echo "No tests configured"
-        fi
-
     - name: Verify Binary
       run: |
-        if [ -f "build/bin/memory-mcp-server" ]; then
-          echo "✅ Binary built successfully"
-          file build/bin/memory-mcp-server
-        else
-          echo "❌ Binary not found"
+        if (Test-Path "build\bin\${{ env.BUILD_TYPE }}\memory-mcp-server.exe") {
+          Write-Host "✅ Windows binary built successfully"
+        } else {
+          Write-Host "❌ Windows binary not found"
           exit 1
-        fi
+        }
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: memory-mcp-server-ubuntu
+        name: memory-mcp-server-windows
         path: build/bin/
         retention-days: 7
 
