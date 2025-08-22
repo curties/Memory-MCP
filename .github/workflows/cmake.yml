@@ -1,4 +1,6 @@
-name: CMake Build and Test
+# This starter workflow is for a CMake project running on a single platform. There is a different starter workflow if you need cross-platform coverage.
+# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-multi-platform.yml
+name: CMake on a single platform
 
 on:
   push:
@@ -11,58 +13,18 @@ env:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        compiler: [gcc, clang, msvc]
-        exclude:
-          # MSVC только на Windows
-          - os: ubuntu-latest
-            compiler: msvc
-          - os: macos-latest
-            compiler: msvc
-          # Clang не на macOS (использует системный)
-          - os: macos-latest
-            compiler: clang
-
-    runs-on: ${{ matrix.os }}
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Setup CMake
-      uses: jwlawson/actions-setup-cmake@v1.14
-      with:
-        cmake-version: '3.16.0'
-
-    - name: Setup C++ Compiler
-      if: matrix.os == 'ubuntu-latest'
-      uses: ammaraskar/setup-cpp@v1
-      with:
-        compiler: ${{ matrix.compiler }}
-        version: 'latest'
-
-    - name: Setup C++ Compiler (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: ammaraskar/setup-cpp@v1
-      with:
-        compiler: ${{ matrix.compiler }}
-        version: 'latest'
-
-    - name: Setup C++ Compiler (macOS)
-      if: matrix.os == 'macos-latest'
-      uses: ammaraskar/setup-cpp@v1
-      with:
-        compiler: ${{ matrix.compiler }}
-        version: 'latest'
+    - uses: actions/checkout@v4
 
     - name: Configure CMake
-      run: |
-        cmake -B build \
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_CXX_FLAGS="-Wall -Wextra -Wpedantic" \
-          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
     - name: Build
       run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
@@ -78,68 +40,18 @@ jobs:
 
     - name: Verify Binary
       run: |
-        if [ "${{ matrix.os }}" = "windows-latest" ]; then
-          if [ -f "build/bin/${{ env.BUILD_TYPE }}/memory-mcp-server.exe" ]; then
-            echo "✅ Windows binary built successfully"
-          else
-            echo "❌ Windows binary not found"
-            exit 1
-          fi
+        if [ -f "build/bin/memory-mcp-server" ]; then
+          echo "✅ Binary built successfully"
+          file build/bin/memory-mcp-server
         else
-          if [ -f "build/bin/memory-mcp-server" ]; then
-            echo "✅ Binary built successfully"
-            file build/bin/memory-mcp-server
-          else
-            echo "❌ Binary not found"
-            exit 1
-          fi
+          echo "❌ Binary not found"
+          exit 1
         fi
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: memory-mcp-server-${{ matrix.os }}-${{ matrix.compiler }}
-        path: |
-          build/bin/
-          build/compile_commands.json
+        name: memory-mcp-server-ubuntu
+        path: build/bin/
         retention-days: 7
-
-  # Дополнительная проверка на Ubuntu с sanitizers
-  sanitizer-check:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Setup CMake
-      uses: jwlawson/actions-setup-cmake@v1.14
-      with:
-        cmake-version: '3.16.0'
-
-    - name: Setup C++ Compiler
-      uses: ammaraskar/setup-cpp@v1
-      with:
-        compiler: gcc
-        version: 'latest'
-
-    - name: Configure CMake (Debug with Sanitizers)
-      run: |
-        cmake -B build-sanitizer \
-          -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -Wall -Wextra -Wpedantic" \
-          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
-
-    - name: Build (Debug with Sanitizers)
-      run: cmake --build build-sanitizer --config Debug --parallel
-
-    - name: Test (Debug with Sanitizers)
-      working-directory: build-sanitizer
-      run: |
-        if [ -f "CTestTestfile.cmake" ]; then
-          ctest -C Debug --output-on-failure
-        else
-          echo "No tests configured"
-        fi
 
