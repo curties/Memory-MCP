@@ -26,6 +26,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 add_subdirectory(ext/json)
+add_subdirectory(ext/cpp-httplib)
 
 if(WIN32)
     target_link_libraries(${PROJECT_NAME} 
@@ -35,6 +36,7 @@ if(WIN32)
         kernel32
         user32
         nlohmann_json::nlohmann_json
+        httplib::httplib
     )
 endif()
 
