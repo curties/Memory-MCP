@@ -1,3 +1,5 @@
+[![CMake on a single platform](https://github.com/kkkeeetttx/Memory-MCP/actions/workflows/cmake.yml/badge.svg?branch=main)](https://github.com/kkkeeetttx/Memory-MCP/actions/workflows/cmake.yml)
+
 # Memory MCP
 
 A high-performance C++ MCP (Model Context Protocol) server for real-time memory scanning and analysis of Windows processes.
