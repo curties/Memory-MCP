@@ -12,17 +12,17 @@
 using namespace MemoryMCP;
 
 MemoryScanner::MemoryScanner() {
-    fmt::print("[INFO] Memory Scanner initialized\n");
+    fmt::print(stderr, "[INFO] Memory Scanner initialized\n");
 }
 
 MemoryScanner::~MemoryScanner() {
-    fmt::print("[INFO] Memory Scanner shutting down\n");
+    fmt::print(stderr, "[INFO] Memory Scanner shutting down\n");
 }
 
 ScanResponse MemoryScanner::scan_memory(const std::string& process_name, const std::string& value, ValueType value_type) {
-    fmt::print("[INFO] Starting memory scan...\n");
-    fmt::print("[INFO] Process: {}\n", process_name);
-    fmt::print("[INFO] Searching for: {} (type: {})\n", value, value_type_to_string(value_type));
+    fmt::print(stderr, "[INFO] Starting memory scan...\n");
+    fmt::print(stderr, "[INFO] Process: {}\n", process_name);
+    fmt::print(stderr, "[INFO] Searching for: {} (type: {})\n", value, value_type_to_string(value_type));
 
     
     ScanResponse response;
@@ -33,37 +33,37 @@ ScanResponse MemoryScanner::scan_memory(const std::string& process_name, const s
         DWORD process_id = find_process_by_name(process_name);
         if (process_id == 0) {
             response.message = "Process not found: " + process_name;
-            fmt::print("[ERROR] {}\n", response.message);
+            fmt::print(stderr, "[ERROR] {}\n", response.message);
             return response;
         }
         
-        fmt::print("[SUCCESS] Process found, PID: {}\n", process_id);
+        fmt::print(stderr, "[SUCCESS] Process found, PID: {}\n", process_id);
         
         HANDLE process_handle = open_process(process_id);
         if (process_handle == NULL) {
             response.message = "Failed to open process";
-            fmt::print("[ERROR] {}\n", response.message);
+            fmt::print(stderr, "[ERROR] {}\n", response.message);
             return response;
         }
         
-        fmt::print("[SUCCESS] Process opened, handle: {}\n", process_handle);
+        fmt::print(stderr, "[SUCCESS] Process opened, handle: {}\n", process_handle);
         
         std::vector<uintptr_t> memory_regions = get_memory_regions(process_handle);
-        fmt::print("[INFO] Found {} memory regions\n", memory_regions.size());
+        fmt::print(stderr, "[INFO] Found {} memory regions\n", memory_regions.size());
         
         std::vector<MemoryAddress> all_found;
         size_t scanned_regions = 0;
         
         for (uintptr_t region : memory_regions) {
             if (scanned_regions >= MAX_REGIONS) {
-                fmt::print("[WARNING] Reached region limit ({})\n", MAX_REGIONS);
+                fmt::print(stderr, "[WARNING] Reached region limit ({})\n", MAX_REGIONS);
                 break;
             }
             
             std::vector<MemoryAddress> region_results = scan_memory_region(process_handle, region, value, value_type);
             if (!region_results.empty()) {
                 all_found.insert(all_found.end(), region_results.begin(), region_results.end());
-                fmt::print("[INFO] In region 0x{:x} found {} matches\n", region, region_results.size());
+                fmt::print(stderr, "[INFO] In region 0x{:x} found {} matches\n", region, region_results.size());
             }
             
             scanned_regions++;
@@ -79,14 +79,14 @@ ScanResponse MemoryScanner::scan_memory(const std::string& process_name, const s
         response.success = true;
         response.message = "Scan completed. Found " + std::to_string(all_found.size()) + " matches";
         
-        fmt::print("[SUCCESS] Scan completed!\n");
-        fmt::print("[INFO] Result: {} matches\n", all_found.size());
+        fmt::print(stderr, "[SUCCESS] Scan completed!\n");
+        fmt::print(stderr, "[INFO] Result: {} matches\n", all_found.size());
         
         CloseHandle(process_handle);
         
     } catch (const std::exception& e) {
         response.message = "Scan error: " + std::string(e.what());
-        fmt::print("[ERROR] {}\n", response.message);
+        fmt::print(stderr, "[ERROR] {}\n", response.message);
     }
     
     return response;
@@ -119,8 +119,8 @@ AddressesResponse MemoryScanner::get_addresses(size_t max_count) {
 }
 
 FilterResponse MemoryScanner::filter_addresses(const std::vector<std::string>& addresses, const std::string& new_value, ValueType value_type) {
-    fmt::print("[INFO] Filtering {} addresses...\n", addresses.size());
-    fmt::print("[INFO] New value: {}\n", new_value);
+    fmt::print(stderr, "[INFO] Filtering {} addresses...\n", addresses.size());
+    fmt::print(stderr, "[INFO] New value: {}\n", new_value);
     
     FilterResponse response;
     response.success = false;
@@ -151,11 +151,11 @@ FilterResponse MemoryScanner::filter_addresses(const std::vector<std::string>& a
         response.success = true;
         response.message = "Filtering completed. Found " + std::to_string(filtered.size()) + " addresses";
         
-        fmt::print("[SUCCESS] Filtering completed: {} addresses\n", filtered.size());
+        fmt::print(stderr, "[SUCCESS] Filtering completed: {} addresses\n", filtered.size());
         
     } catch (const std::exception& e) {
         response.message = "Filtering error: " + std::string(e.what());
-        fmt::print("[ERROR] {}\n", response.message);
+        fmt::print(stderr, "[ERROR] {}\n", response.message);
     }
     
     return response;
@@ -171,12 +171,12 @@ ResetResponse MemoryScanner::reset() {
         response.success = true;
         response.message = "Scanner reset";
         
-        fmt::print("[INFO] Memory Scanner reset\n");
+        fmt::print(stderr, "[INFO] Memory Scanner reset\n");
         
     } catch (const std::exception& e) {
         response.success = false;
         response.message = "Reset error: " + std::string(e.what());
-        fmt::print("[ERROR] {}\n", response.message);
+        fmt::print(stderr, "[ERROR] {}\n", response.message);
     }
     
     return response;
@@ -185,7 +185,7 @@ ResetResponse MemoryScanner::reset() {
 DWORD MemoryScanner::find_process_by_name(const std::string& process_name) {
     HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (snapshot == INVALID_HANDLE_VALUE) {
-        fmt::print("[ERROR] Failed to create process snapshot\n");
+        fmt::print(stderr, "[ERROR] Failed to create process snapshot\n");
         return 0;
     }
     
@@ -193,7 +193,7 @@ DWORD MemoryScanner::find_process_by_name(const std::string& process_name) {
     pe32.dwSize = sizeof(PROCESSENTRY32W);
     
     if (!Process32FirstW(snapshot, &pe32)) {
-        fmt::print("[ERROR] Failed to get first process\n");
+        fmt::print(stderr, "[ERROR] Failed to get first process\n");
         CloseHandle(snapshot);
         return 0;
     }
@@ -203,13 +203,13 @@ DWORD MemoryScanner::find_process_by_name(const std::string& process_name) {
         std::string name = wstring_to_string(wname);
         
         if (name == process_name) {
-            fmt::print("[SUCCESS] Process found: {} (PID: {})\n", name, pe32.th32ProcessID);
+            fmt::print(stderr, "[SUCCESS] Process found: {} (PID: {})\n", name, pe32.th32ProcessID);
             CloseHandle(snapshot);
             return pe32.th32ProcessID;
         }
     } while (Process32NextW(snapshot, &pe32));
     
-    fmt::print("[ERROR] Process not found: {}\n", process_name);
+    fmt::print(stderr, "[ERROR] Process not found: {}\n", process_name);
     CloseHandle(snapshot);
     return 0;
 }
@@ -222,8 +222,8 @@ HANDLE MemoryScanner::open_process(DWORD process_id) {
     );
     
     if (handle == NULL) {
-        fmt::print("[ERROR] Failed to open process PID {}\n", process_id);
-        fmt::print("[INFO] Error code: {}\n", GetLastError());
+        fmt::print(stderr, "[ERROR] Failed to open process PID {}\n", process_id);
+        fmt::print(stderr, "[INFO] Error code: {}\n", GetLastError());
         return NULL;
     }
     
