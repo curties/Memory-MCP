@@ -25,17 +25,30 @@ void run_mcp_mode() {
 
     while (g_running && std::getline(std::cin, line)) {
         try {
+            // Skip empty lines/blank messages
+            if (line.find_first_not_of(" \t\r\n") == std::string::npos) {
+                continue;
+            }
+
             json request = json::parse(line);
+            
+            // Check, if it nofity (without id)
+            if (!request.contains("id") || request["id"].is_null()) {
+                // Notification - skip
+                continue;
+            }
+            
             json response;
             response["jsonrpc"] = "2.0";
-            
-            if (request.contains("id")) {
-                response["id"] = request["id"];
-            }
+            response["id"] = request["id"];
 
             if (request.contains("method")) {
                 std::string method = request["method"];
 
+                // MCP: 'initialized' is a notification normally (no id). If it ever comes with id, return empty result.
+                if (method == "initialized") {
+                    response["result"] = json::object();
+                } else
                 if (method == "initialize") {
                     json capabilities;
                     capabilities["tools"] = {{"listChanged", false}};
@@ -194,14 +207,8 @@ void run_mcp_mode() {
             fmt::print("{}\n", response.dump());
 
         } catch (const std::exception& e) {
-            json error_response;
-            error_response["jsonrpc"] = "2.0";
-            error_response["error"] = {
-                {"code", -32700},
-                {"message", std::string("Parse error: ") + e.what()}
-            };
-            error_response["id"] = nullptr;
-            fmt::print("{}\n", error_response.dump());
+            // Don't print anything to stdout, to not break MCP indicator
+            fmt::print(stderr, "[ERROR] MCP parse error: {}\n", e.what());
         }
     }
 }
